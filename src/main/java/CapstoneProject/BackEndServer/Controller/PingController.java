@@ -31,6 +31,7 @@ public class PingController {
 //    }
     @PostMapping("/getClientIP")
     public String getClientIP(HttpServletRequest request){
+        System.out.println("request getClientIP");
         return request.getRemoteAddr();
     }
     @PostMapping("/test")
@@ -47,11 +48,10 @@ public class PingController {
 
             String line;
             // ping 결과 출력
-            int count = 10;
+            int count = 20;
             while ((line = reader.readLine()) != null && count-->0) {
                 System.out.println(line);
             }
-
 
             // 프로세스 종료 및 자원 정리
             process.destroy();
