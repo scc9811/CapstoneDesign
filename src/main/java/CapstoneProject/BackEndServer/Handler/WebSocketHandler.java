@@ -18,7 +18,6 @@ import java.util.*;
 public class WebSocketHandler extends TextWebSocketHandler{
     private static final Map<String, WebSocketSession> CLIENTS = new HashMap<>();
 
-    private static final long TIMEOUT = 3000;
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         CLIENTS.put(session.getId(), session);
@@ -48,12 +47,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
         }
 
 
-
-
-
-
         try {
-
             // ping 명령 실행
             Process process = Runtime.getRuntime().exec("ping " + clientName);
 
@@ -62,20 +56,32 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
 
             // ping 결과 출력
-            String line;
-            int responseCount = -1;
+            int responsePacketCount = -1;
+            int lostPacketCount = 0;
             double totalResponseTime = 0.0;
+            String line;
 
-            // packet loss 고려해서 avg 계산에서 responseCount 대신 --> icmp_seq=~~ 를 이용하기.
+            // packet loss 가 계속되는 경우 고려해서 --> total timeOut 설정해야됨
             while ((line = reader.readLine()) != null &&
-                    responseCount++ < 20) {
-                if(responseCount==0) continue;
-                totalResponseTime += Double.parseDouble(line.split(" ")[6].split("=")[1]);
+                    responsePacketCount++ < 10) {
+                if ( responsePacketCount == 0 ) continue;
+
+                String[] responseTokens = line.split(" ");
+                if (responsePacketCount == 10 ){
+                    lostPacketCount = Integer.parseInt(responseTokens[4].split("=")[1]) - responsePacketCount;
+                }
+                totalResponseTime += Double.parseDouble(responseTokens[6].split("=")[1]);
+
                 System.out.println("totalResponseTime = "+totalResponseTime);
-                double averageResponseTime = totalResponseTime / responseCount;
-                session.sendMessage(new TextMessage(String.valueOf(averageResponseTime)));
+                double averageResponseTime = totalResponseTime / responsePacketCount;
+                session.sendMessage(new TextMessage("avg time = " + String.valueOf(averageResponseTime)));
                 System.out.println(line);
             }
+
+            session.sendMessage(new TextMessage("Avg responseTime = " + ( totalResponseTime / responsePacketCount) + "\n" +
+                                "Packet Loss Rate = " + (int) ( (double) lostPacketCount / (lostPacketCount + responsePacketCount))));
+
+
 
             // 프로세스 종료 및 자원 정리
             process.destroy();
@@ -84,8 +90,6 @@ public class WebSocketHandler extends TextWebSocketHandler{
             System.out.println("Main Ping Test Process Error");
             e.printStackTrace();
         }
-
-
 
 
 //         세션 종료
