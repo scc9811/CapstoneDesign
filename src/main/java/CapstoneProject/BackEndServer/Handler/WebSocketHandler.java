@@ -1,6 +1,10 @@
 package CapstoneProject.BackEndServer.Handler;
 
+import CapstoneProject.BackEndServer.Objects.PingResponseTimeData;
+import CapstoneProject.BackEndServer.Service.JsonFormatService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -15,10 +19,13 @@ import java.util.*;
 
 // Compoent로 bean 등록하는 이유 ..?
 @Component
+@RequiredArgsConstructor
 public class WebSocketHandler extends TextWebSocketHandler{
     private static final Map<String, WebSocketSession> CLIENTS = new HashMap<>();
 
-    private static final long TIMEOUT = 50000;
+    private static final long TIMEOUT = 30000;
+
+    private final JsonFormatService jsonFormatService;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -78,12 +85,31 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
                 System.out.println("totalResponseTime = "+totalResponseTime);
                 double averageResponseTime = totalResponseTime / responsePacketCount;
-                session.sendMessage(new TextMessage("avg time = " + String.valueOf(averageResponseTime)));
+
+                // pingResponseTimeData setting.
+                PingResponseTimeData pingResponseTimeData = new PingResponseTimeData();
+                pingResponseTimeData.setIsRunning("true");
+                pingResponseTimeData.setAverageResponseTime(String.format("%.2f", averageResponseTime));
+                pingResponseTimeData.setPacketLossRate(null);
+                // jason 파싱해서 전송.
+                session.sendMessage(new TextMessage(jsonFormatService.formatToJson(pingResponseTimeData)));
                 System.out.println(line);
+
             }
 
-            session.sendMessage(new TextMessage("Avg responseTime = " + ( totalResponseTime / responsePacketCount) + "\n" +
-                                "Packet Loss Rate = " + (int) ( (double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100)));
+            PingResponseTimeData pingResponseTimeData = new PingResponseTimeData();
+            pingResponseTimeData.setIsRunning("false");
+            double averageResponseTime = totalResponseTime / responsePacketCount;
+            pingResponseTimeData.setAverageResponseTime(String.format("%.2f", averageResponseTime));
+            double packetLossRate = (int) ((double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100);
+            pingResponseTimeData.setPacketLossRate(String.format("%.2f", packetLossRate) + "%");
+            session.sendMessage(new TextMessage(jsonFormatService.formatToJson(pingResponseTimeData)));
+
+
+
+
+//            session.sendMessage(new TextMessage("Avg responseTime = " + ( totalResponseTime / responsePacketCount) + "\n" +
+//                                "Packet Loss Rate = " + (int) ( (double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100) + "%"));
 
 
 
