@@ -18,6 +18,8 @@ import java.util.*;
 public class WebSocketHandler extends TextWebSocketHandler{
     private static final Map<String, WebSocketSession> CLIENTS = new HashMap<>();
 
+    private static final long TIMEOUT = 50000;
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         CLIENTS.put(session.getId(), session);
@@ -26,6 +28,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
         String clientName = session.getRemoteAddress().getHostName();
         System.out.println("clientName = "+clientName);
 
+        System.currentTimeMillis();
 
         boolean isAllowedICMP;
         try {
@@ -61,8 +64,9 @@ public class WebSocketHandler extends TextWebSocketHandler{
             double totalResponseTime = 0.0;
             String line;
 
-            // packet loss 가 계속되는 경우 고려해서 --> total timeOut 설정해야됨
-            while ((line = reader.readLine()) != null &&
+            long startTime = System.currentTimeMillis();
+
+            while (System.currentTimeMillis() - startTime  < TIMEOUT && (line = reader.readLine()) != null &&
                     responsePacketCount++ < 10) {
                 if ( responsePacketCount == 0 ) continue;
 
@@ -79,7 +83,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
             }
 
             session.sendMessage(new TextMessage("Avg responseTime = " + ( totalResponseTime / responsePacketCount) + "\n" +
-                                "Packet Loss Rate = " + (int) ( (double) lostPacketCount / (lostPacketCount + responsePacketCount))));
+                                "Packet Loss Rate = " + (int) ( (double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100)));
 
 
 
