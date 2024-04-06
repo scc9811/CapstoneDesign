@@ -27,7 +27,33 @@ public class WebSocketHandler extends TextWebSocketHandler{
         String clientName = session.getRemoteAddress().getHostName();
         System.out.println("clientName = "+clientName);
 
+
+        boolean isAllowedICMP;
         try {
+            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + clientName);
+            int returnVal = p1.waitFor();
+            isAllowedICMP = (returnVal == 0);
+        }
+        catch (Exception e){
+            System.out.println("First Ping Test Error");
+            isAllowedICMP = false;
+        }
+
+        // icmp denied : 방화벽 설정 안내 메세지, 세션 종료
+        if(!isAllowedICMP) {
+            System.out.println("ping test 불가. 방화벽 설정을 확인해주세요.");
+            session.sendMessage(new TextMessage("ping test 불가. 방화벽 설정을 확인해주세요."));
+            session.close();
+            return;
+        }
+
+
+
+
+
+
+        try {
+
             // ping 명령 실행
             Process process = Runtime.getRuntime().exec("ping " + clientName);
 
@@ -39,32 +65,23 @@ public class WebSocketHandler extends TextWebSocketHandler{
             String line;
             int responseCount = -1;
             double totalResponseTime = 0.0;
-            long startTime = System.currentTimeMillis();
 
-            // timeOut 로직 다시짜야됨.  ( 연결 안되는 경우 생각하기 )
+            // packet loss 고려해서 avg 계산에서 responseCount 대신 --> icmp_seq=~~ 를 이용하기.
             while ((line = reader.readLine()) != null &&
-                    (System.currentTimeMillis() - startTime) < TIMEOUT
-                    && responseCount++ < 20) {
+                    responseCount++ < 20) {
                 if(responseCount==0) continue;
                 totalResponseTime += Double.parseDouble(line.split(" ")[6].split("=")[1]);
                 System.out.println("totalResponseTime = "+totalResponseTime);
                 double averageResponseTime = totalResponseTime / responseCount;
                 session.sendMessage(new TextMessage(String.valueOf(averageResponseTime)));
                 System.out.println(line);
-
-                startTime = System.currentTimeMillis();
-            }
-
-            // ping test denied
-            if(responseCount == 0){
-                System.out.println("ping test 불가. 방화벽 설정을 확인해주세요.");
             }
 
             // 프로세스 종료 및 자원 정리
             process.destroy();
             reader.close();
         } catch (IOException e) {
-            System.out.println("catch section");
+            System.out.println("Main Ping Test Process Error");
             e.printStackTrace();
         }
 
