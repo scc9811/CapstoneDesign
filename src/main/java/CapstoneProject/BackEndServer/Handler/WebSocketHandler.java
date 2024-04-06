@@ -18,7 +18,7 @@ import java.util.*;
 public class WebSocketHandler extends TextWebSocketHandler{
     private static final Map<String, WebSocketSession> CLIENTS = new HashMap<>();
 
-    private static final long TIMEOUT = 1000;
+    private static final long TIMEOUT = 3000;
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         CLIENTS.put(session.getId(), session);
@@ -37,12 +37,15 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
             // ping 결과 출력
             String line;
-            int responseCount = 0;
+            int responseCount = -1;
             double totalResponseTime = 0.0;
             long startTime = System.currentTimeMillis();
+
+            // timeOut 로직 다시짜야됨.  ( 연결 안되는 경우 생각하기 )
             while ((line = reader.readLine()) != null &&
                     (System.currentTimeMillis() - startTime) < TIMEOUT
                     && responseCount++ < 20) {
+                if(responseCount==0) continue;
                 totalResponseTime += Double.parseDouble(line.split(" ")[6].split("=")[1]);
                 System.out.println("totalResponseTime = "+totalResponseTime);
                 double averageResponseTime = totalResponseTime / responseCount;
