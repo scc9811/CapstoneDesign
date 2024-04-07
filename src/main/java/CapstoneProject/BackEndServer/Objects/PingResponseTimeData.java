@@ -7,9 +7,8 @@ import lombok.Setter;
 
 @Setter
 @Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PingResponseTimeData {
-    private String isRunning;
+    private boolean running;
 
     private String averageResponseTime;
 

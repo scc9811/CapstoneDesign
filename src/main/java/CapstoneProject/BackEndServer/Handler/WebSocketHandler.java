@@ -4,24 +4,20 @@ import CapstoneProject.BackEndServer.Objects.PingResponseTimeData;
 import CapstoneProject.BackEndServer.Service.JsonFormatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.util.*;
 
-// Compoent로 bean 등록하는 이유 ..?
 @Component
 @RequiredArgsConstructor
 public class WebSocketHandler extends TextWebSocketHandler{
-    private static final Map<String, WebSocketSession> CLIENTS = new HashMap<>();
+//    private static final Map<String, WebSocketSession> CLIENTS = new HashMap<>();
 
     private static final long TIMEOUT = 30000;
 
@@ -29,7 +25,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        CLIENTS.put(session.getId(), session);
+//        CLIENTS.put(session.getId(), session);
         System.out.println("Socket Connection started");
         System.out.println("IP in WebSocketHandler : " + session.getRemoteAddress());
         String clientName = session.getRemoteAddress().getHostName();
@@ -78,27 +74,27 @@ public class WebSocketHandler extends TextWebSocketHandler{
                 if ( responsePacketCount == 0 ) continue;
 
                 String[] responseTokens = line.split(" ");
-                if (responsePacketCount == 10 ){
-                    lostPacketCount = Integer.parseInt(responseTokens[4].split("=")[1]) - responsePacketCount;
-                }
+                lostPacketCount = Integer.parseInt(responseTokens[4].split("=")[1]) - responsePacketCount;
+
                 totalResponseTime += Double.parseDouble(responseTokens[6].split("=")[1]);
 
                 System.out.println("totalResponseTime = "+totalResponseTime);
                 double averageResponseTime = totalResponseTime / responsePacketCount;
 
+
                 // pingResponseTimeData setting.
                 PingResponseTimeData pingResponseTimeData = new PingResponseTimeData();
-                pingResponseTimeData.setIsRunning("true");
+                pingResponseTimeData.setRunning(true);
                 pingResponseTimeData.setAverageResponseTime(String.format("%.2f", averageResponseTime));
                 pingResponseTimeData.setPacketLossRate(null);
                 // jason 파싱해서 전송.
                 session.sendMessage(new TextMessage(jsonFormatService.formatToJson(pingResponseTimeData)));
                 System.out.println(line);
-
             }
+            responsePacketCount--;
 
             PingResponseTimeData pingResponseTimeData = new PingResponseTimeData();
-            pingResponseTimeData.setIsRunning("false");
+            pingResponseTimeData.setRunning(false);
             double averageResponseTime = totalResponseTime / responsePacketCount;
             pingResponseTimeData.setAverageResponseTime(String.format("%.2f", averageResponseTime));
             double packetLossRate = (int) ((double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100);
@@ -128,7 +124,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        CLIENTS.remove(session.getId());
+//        CLIENTS.remove(session.getId());
         System.out.println("Socket Connection ended");
     }
 }

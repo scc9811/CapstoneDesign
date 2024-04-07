@@ -1,6 +1,8 @@
 package CapstoneProject.BackEndServer.Controller;
 
 
+import CapstoneProject.BackEndServer.Objects.ICMPInboundAccessData;
+import CapstoneProject.BackEndServer.Service.JsonFormatService;
 import CapstoneProject.BackEndServer.Service.PingTestService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.NoArgsConstructor;
@@ -20,6 +22,25 @@ import java.net.http.HttpRequest;
 @RequiredArgsConstructor
 @CrossOrigin(origins="*")
 public class PingController {
+    private final JsonFormatService jsonFormatService;
+    @PostMapping("/isICMPInboundAllowed")
+    public String isICMPInboundAllowed(HttpServletRequest request){
+        boolean isAllowedICMP;
+        try {
+            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + request.getRemoteAddr());
+//            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + "127.0.0.1");
+//            System.out.println("remoteaddr = " + request.getRemoteAddr());
+            int returnVal = p1.waitFor();
+            isAllowedICMP = (returnVal == 0);
+        }
+        catch (Exception e){
+            System.out.println("First Ping Test Error");
+            isAllowedICMP = false;
+        }
+        ICMPInboundAccessData data = new ICMPInboundAccessData();
+        data.setAllowed(isAllowedICMP);
+        return jsonFormatService.formatToJson(data);
+    }
 //    private final PingTestService pingTestService;
 //    @PostMapping("/isICMPInboundAllowed")
 
