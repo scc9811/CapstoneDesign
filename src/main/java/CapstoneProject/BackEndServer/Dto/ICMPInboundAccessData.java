@@ -1,4 +1,4 @@
-package CapstoneProject.BackEndServer.Objects;
+package CapstoneProject.BackEndServer.Dto;
 
 
 import lombok.Getter;

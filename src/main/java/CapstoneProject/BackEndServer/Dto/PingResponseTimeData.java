@@ -1,7 +1,6 @@
-package CapstoneProject.BackEndServer.Objects;
+package CapstoneProject.BackEndServer.Dto;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 

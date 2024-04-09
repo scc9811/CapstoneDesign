@@ -1,6 +1,6 @@
 package CapstoneProject.BackEndServer.Handler;
 
-import CapstoneProject.BackEndServer.Objects.PingResponseTimeData;
+import CapstoneProject.BackEndServer.Dto.PingResponseTimeData;
 import CapstoneProject.BackEndServer.Service.JsonFormatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -12,7 +12,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
     private static final long TIMEOUT = 30000;
 
-    private final JsonFormatService jsonFormatService;
+    private final JsonFormatService<PingResponseTimeData> jsonFormatService_toPingResponseTimeData;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -88,7 +87,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
                 pingResponseTimeData.setAverageResponseTime(String.format("%.2f", averageResponseTime));
                 pingResponseTimeData.setPacketLossRate(null);
                 // jason 파싱해서 전송.
-                session.sendMessage(new TextMessage(jsonFormatService.formatToJson(pingResponseTimeData)));
+                session.sendMessage(new TextMessage(jsonFormatService_toPingResponseTimeData.formatToJson(pingResponseTimeData)));
                 System.out.println(line);
             }
             responsePacketCount--;
@@ -99,7 +98,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
             pingResponseTimeData.setAverageResponseTime(String.format("%.2f", averageResponseTime));
             double packetLossRate = (int) ((double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100);
             pingResponseTimeData.setPacketLossRate(String.format("%.2f", packetLossRate) + "%");
-            session.sendMessage(new TextMessage(jsonFormatService.formatToJson(pingResponseTimeData)));
+            session.sendMessage(new TextMessage(jsonFormatService_toPingResponseTimeData.formatToJson(pingResponseTimeData)));
 
 
 
