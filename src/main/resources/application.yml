@@ -3,8 +3,8 @@ jwt:
 spring:
   datasource:
     url: jdbc:mariadb://호스트:포트/데이터베이스이름
-    username: a
-    password: a
+    username: aaa
+    password: aaa
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     hibernate:
