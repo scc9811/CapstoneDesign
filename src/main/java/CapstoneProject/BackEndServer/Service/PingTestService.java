@@ -10,18 +10,16 @@ import java.net.InetAddress;
 @Service
 @NoArgsConstructor
 public class PingTestService {
-    public boolean isHostReachable(String hostIP){
-        boolean isReachable;
+    public boolean getIcmpPacketAllowed(String clientRemoteAddress) {
+        boolean isAllowedICMP;
         try {
-            InetAddress inetAddress = InetAddress.getByName(hostIP);
-            isReachable = inetAddress.isReachable(5000);
-            if(!isReachable) System.out.println("isUnReachable to " + hostIP);
-            else System.out.println("isReachable to " + hostIP);
+            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + clientRemoteAddress);
+            int returnVal = p1.waitFor();
+            isAllowedICMP = (returnVal == 0);
         }
-        catch (IOException e){
-            isReachable = false;
-            System.out.println("isUnReachable to " + hostIP);
+        catch (Exception e){
+            isAllowedICMP = false;
         }
-        return isReachable;
+        return isAllowedICMP;
     }
 }

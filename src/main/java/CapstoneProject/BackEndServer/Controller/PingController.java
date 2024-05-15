@@ -3,8 +3,10 @@ package CapstoneProject.BackEndServer.Controller;
 
 import CapstoneProject.BackEndServer.Dto.ICMPInboundAccessData;
 import CapstoneProject.BackEndServer.Service.JsonFormatService;
+import CapstoneProject.BackEndServer.Service.PingTestService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,30 +16,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/ping")
 @RequiredArgsConstructor
 @CrossOrigin(origins="*")
+@Slf4j
 public class PingController {
+
     private final JsonFormatService<ICMPInboundAccessData> jsonFormatService_toICMPInboundAccessData;
+
+    private final PingTestService pingTestService;
+
     @PostMapping("/isICMPInboundAllowed")
     public String isICMPInboundAllowed(HttpServletRequest request){
-        boolean isAllowedICMP;
-        try {
-//            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + request.getRemoteAddr());
-            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + "127.0.0.1");
-//            System.out.println("remoteaddr = " + request.getRemoteAddr());
-            int returnVal = p1.waitFor();
-            isAllowedICMP = (returnVal == 0);
-            System.out.println("isAllowedICMP = " + isAllowedICMP);
-        }
-        catch (Exception e){
-            System.out.println("First Ping Test Error");
-            isAllowedICMP = false;
-        }
+//        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed(request.getRemoteAddr());
+        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed("127.0.0.1");
         ICMPInboundAccessData data = new ICMPInboundAccessData();
         data.setAllowed(isAllowedICMP);
         return jsonFormatService_toICMPInboundAccessData.formatToJson(data);
     }
+
     @PostMapping("/getClientIP")
     public String getClientIP(HttpServletRequest request){
-        System.out.println("request getClientIP");
+        log.info("request getClientIP");
         return request.getRemoteAddr();
     }
+
 }

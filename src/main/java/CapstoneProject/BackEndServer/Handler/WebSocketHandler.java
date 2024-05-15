@@ -2,7 +2,9 @@ package CapstoneProject.BackEndServer.Handler;
 
 import CapstoneProject.BackEndServer.Dto.PingResponseTimeData;
 import CapstoneProject.BackEndServer.Service.JsonFormatService;
+import CapstoneProject.BackEndServer.Service.PingTestService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -15,6 +17,7 @@ import java.io.InputStreamReader;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class WebSocketHandler extends TextWebSocketHandler{
 //    private static final Map<String, WebSocketSession> CLIENTS = new HashMap<>();
 
@@ -22,30 +25,23 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
     private final JsonFormatService<PingResponseTimeData> jsonFormatService_toPingResponseTimeData;
 
+    private final PingTestService pingTestService;
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 //        CLIENTS.put(session.getId(), session);
-        System.out.println("Socket Connection started");
-        System.out.println("IP in WebSocketHandler : " + session.getRemoteAddress());
+        log.info("Socket Connection started");
+        log.info("IP in WebSocketHandler : " + session.getRemoteAddress());
         String clientName = session.getRemoteAddress().getHostName();
-        System.out.println("clientName = "+clientName);
+        log.info("clientName = "+clientName);
 
-        System.currentTimeMillis();
 
-        boolean isAllowedICMP;
-        try {
-            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 " + clientName);
-            int returnVal = p1.waitFor();
-            isAllowedICMP = (returnVal == 0);
-        }
-        catch (Exception e){
-            System.out.println("First Ping Test Error");
-            isAllowedICMP = false;
-        }
+
+        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed(session.getRemoteAddress().getHostName());
 
         // icmp denied : 방화벽 설정 안내 메세지, 세션 종료
         if(!isAllowedICMP) {
-            System.out.println("ping test 불가. 방화벽 설정을 확인해주세요.");
+            log.info("ping test 불가. 방화벽 설정을 확인해주세요.");
             session.sendMessage(new TextMessage("ping test 불가. 방화벽 설정을 확인해주세요."));
             session.close();
             return;
@@ -77,7 +73,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
                 totalResponseTime += Double.parseDouble(responseTokens[6].split("=")[1]);
 
-                System.out.println("totalResponseTime = "+totalResponseTime);
+                log.info("totalResponseTime = "+totalResponseTime);
                 double averageResponseTime = totalResponseTime / responsePacketCount;
 
 
@@ -88,7 +84,7 @@ public class WebSocketHandler extends TextWebSocketHandler{
                 pingResponseTimeData.setPacketLossRate(null);
                 // jason 파싱해서 전송.
                 session.sendMessage(new TextMessage(jsonFormatService_toPingResponseTimeData.formatToJson(pingResponseTimeData)));
-                System.out.println(line);
+                log.info(line);
             }
             responsePacketCount--;
 
@@ -101,21 +97,13 @@ public class WebSocketHandler extends TextWebSocketHandler{
             session.sendMessage(new TextMessage(jsonFormatService_toPingResponseTimeData.formatToJson(pingResponseTimeData)));
 
 
-
-
-//            session.sendMessage(new TextMessage("Avg responseTime = " + ( totalResponseTime / responsePacketCount) + "\n" +
-//                                "Packet Loss Rate = " + (int) ( (double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100) + "%"));
-
-
-
             // 프로세스 종료 및 자원 정리
             process.destroy();
             reader.close();
         } catch (IOException e) {
-            System.out.println("Main Ping Test Process Error");
+            log.info("Main Ping Test Process Error");
             e.printStackTrace();
         }
-
 
 //         세션 종료
         session.close();
@@ -123,7 +111,6 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-//        CLIENTS.remove(session.getId());
-        System.out.println("Socket Connection ended");
+        log.info("Socket Connection ended");
     }
 }
