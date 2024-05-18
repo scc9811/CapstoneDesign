@@ -2,7 +2,7 @@ package CapstoneProject.BackEndServer.Controller;
 
 
 import CapstoneProject.BackEndServer.Dto.LoginRequest;
-import CapstoneProject.BackEndServer.Dto.User;
+import CapstoneProject.BackEndServer.Dto.SignUpRequest;
 import CapstoneProject.BackEndServer.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +23,9 @@ public class UserController {
         return ResponseEntity.ok().body(userService.login(loginRequest.getUserName(), loginRequest.getPassWord()));
     }
     @PostMapping("signUp")
-    public ResponseEntity<String> singUp(@RequestBody User user) {
+    public ResponseEntity<String> singUp(@RequestBody SignUpRequest signUpRequest) {
         // 1. 이미 가입 --> 안내메세지
-        userService.signUp(user);
+        userService.signUp(signUpRequest);
 
         return ResponseEntity.ok().body("");
     }
