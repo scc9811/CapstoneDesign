@@ -78,22 +78,25 @@ public class WebSocketHandler extends TextWebSocketHandler{
 
 
                 // pingResponseTimeData setting.
-                PingResponseTimeData pingResponseTimeData = new PingResponseTimeData();
-                pingResponseTimeData.setRunning(true);
-                pingResponseTimeData.setAverageResponseTime(String.format("%.2f", averageResponseTime));
-                pingResponseTimeData.setPacketLossRate(null);
+                PingResponseTimeData pingResponseTimeData =
+                        PingResponseTimeData.builder()
+                        .running(true)
+                        .averageResponseTime(String.format("%.2f", averageResponseTime))
+                        .packetLossRate(null)
+                        .build();
                 // jason 파싱해서 전송.
                 session.sendMessage(new TextMessage(jsonFormatService_toPingResponseTimeData.formatToJson(pingResponseTimeData)));
                 log.info(line);
             }
             responsePacketCount--;
 
-            PingResponseTimeData pingResponseTimeData = new PingResponseTimeData();
-            pingResponseTimeData.setRunning(false);
             double averageResponseTime = totalResponseTime / responsePacketCount;
-            pingResponseTimeData.setAverageResponseTime(String.format("%.2f", averageResponseTime));
             double packetLossRate = (int) ((double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100);
-            pingResponseTimeData.setPacketLossRate(String.format("%.2f", packetLossRate) + "%");
+            PingResponseTimeData pingResponseTimeData = PingResponseTimeData.builder()
+                        .running(false)
+                    .averageResponseTime(String.format("%.2f", averageResponseTime))
+                    .packetLossRate(String.format("%.2f", packetLossRate) + "%")
+                                    .build();
             session.sendMessage(new TextMessage(jsonFormatService_toPingResponseTimeData.formatToJson(pingResponseTimeData)));
 
 
