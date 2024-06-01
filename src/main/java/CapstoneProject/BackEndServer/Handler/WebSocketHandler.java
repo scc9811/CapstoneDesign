@@ -93,10 +93,10 @@ public class WebSocketHandler extends TextWebSocketHandler{
             double averageResponseTime = totalResponseTime / responsePacketCount;
             double packetLossRate = (int) ((double) lostPacketCount / (lostPacketCount + responsePacketCount) * 100);
             PingResponseTimeData pingResponseTimeData = PingResponseTimeData.builder()
-                        .running(false)
+                    .running(false)
                     .averageResponseTime(String.format("%.2f", averageResponseTime))
                     .packetLossRate(String.format("%.2f", packetLossRate) + "%")
-                                    .build();
+                    .build();
             session.sendMessage(new TextMessage(jsonFormatService_toPingResponseTimeData.formatToJson(pingResponseTimeData)));
 
 

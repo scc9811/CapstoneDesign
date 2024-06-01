@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 public class JsonFormatService<T>{
     private final ObjectMapper objectMapper;
 
-//    public String formatToJson(PingResponseTimeData pingResponseTimeData) {
     public String formatToJson(T data) {
         try {
             // ObjectMapper를 사용하여 Java 객체를 JSON 문자열로 변환

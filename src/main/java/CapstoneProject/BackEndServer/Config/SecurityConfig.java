@@ -31,12 +31,14 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         httpRequest -> httpRequest
-                                .requestMatchers("/user/*").permitAll()
+                                .requestMatchers("/user/signUp").permitAll()
+                                .requestMatchers("/user/signIn").permitAll()
+                                .requestMatchers("/user/jwtTest").permitAll()
                                 .requestMatchers("/ping/*").permitAll()
                                 .requestMatchers("/socketConnection").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtFilter(secretKey, userService), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtFilter(secretKey), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
