@@ -9,11 +9,10 @@ import CapstoneProject.BackEndServer.Service.JsonFormatService;
 import CapstoneProject.BackEndServer.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/user")
@@ -30,6 +29,7 @@ public class UserController {
 
     @PostMapping("getJwt")
     public ResponseEntity<String> getJwt() {
+
         return ResponseEntity.ok().body(jwtDataJsonFormatService.formatToJson(new JwtData(userService.getJwt("test@gmail.com"))));
     }
 
@@ -38,27 +38,36 @@ public class UserController {
         return ResponseEntity.ok().body("permitted");
     }
 
-    @PostMapping("secure")
-    public ResponseEntity<String> test() {
-        return ResponseEntity.ok().body("OK");
+    @GetMapping("requestMyPageData")
+    public ResponseEntity<String> getMyPageData() {
+        // test ~~
+        return ResponseEntity.ok().body(jsonFormatService.formatToJson(new RequestResultData(true)));
     }
 
     @PostMapping("/signIn")
     public ResponseEntity<String> signIn(@RequestBody SignInRequest signInRequest) {
         boolean signInResult = userService.getSignInResult(signInRequest);
-        // 로그인 성공 시 jwt 발급하는 로직 추가해야됨.
-        log.info("---sigInController ---" );
-        log.info("loginInfo = " + signInRequest.toString());
-
-
-        return ResponseEntity.ok().body(jsonFormatService.formatToJson(new RequestResultData(signInResult)));
+        if(!signInResult) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("rejected");
+        }
+        else {
+            log.info("loginInfo = " + signInRequest.toString());
+            return ResponseEntity
+                    .ok()
+                    .body(jwtDataJsonFormatService.formatToJson(new JwtData(userService.getJwt(signInRequest.getEmail()))));
+        }
     }
 
     @PostMapping("signUp")
     public ResponseEntity<String> singUp(@RequestBody SignUpRequest signUpRequest) {
         log.info("userInfo = " + signUpRequest.toString());
         boolean signUpResult = userService.getSignUpResult(signUpRequest);
-        return ResponseEntity.ok().body(jsonFormatService.formatToJson(new RequestResultData(signUpResult)));
+        if(!signUpResult) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 가입되어있는 이메일입니다.");
+        }
+        else {
+            return ResponseEntity.ok().body(jsonFormatService.formatToJson(new RequestResultData(signUpResult)));
+        }
     }
 
 }

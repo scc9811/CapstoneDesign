@@ -21,7 +21,7 @@ public class UserService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private Long expiredMs = 1000 * 60 * 60L;
+    private final Long expiredMs = 1000 * 60 * 60L;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -46,7 +46,6 @@ public class UserService {
             return false;
         }
 
-        // test중...
         log.info("pwd = " + signUpRequest.getPassword());
         String encodedPwd = bCryptPasswordEncoder.encode(signUpRequest.getPassword());
         log.info("match = " + String.valueOf(bCryptPasswordEncoder.matches(signUpRequest.getPassword(), encodedPwd)));

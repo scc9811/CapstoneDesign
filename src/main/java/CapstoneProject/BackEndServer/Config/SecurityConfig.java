@@ -33,7 +33,7 @@ public class SecurityConfig {
                         httpRequest -> httpRequest
                                 .requestMatchers("/user/signUp").permitAll()
                                 .requestMatchers("/user/signIn").permitAll()
-                                .requestMatchers("/user/jwtTest").permitAll()
+                                .requestMatchers("/user/getJwt").permitAll()
                                 .requestMatchers("/ping/*").permitAll()
                                 .requestMatchers("/socketConnection").permitAll()
                                 .anyRequest().authenticated()
