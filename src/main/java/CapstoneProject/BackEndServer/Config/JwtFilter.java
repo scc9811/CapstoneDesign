@@ -30,7 +30,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // token 이 없는경우
         if(authorization == null || !authorization.startsWith("Bearer ")) {
-            log.error("authorization is null");
+            log.info("authorization is null");
             filterChain.doFilter(request, response);
             return;
         }

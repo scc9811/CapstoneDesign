@@ -38,7 +38,8 @@ public class SecurityConfig {
                                 .requestMatchers("/socketConnection").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtFilter(secretKey), UsernamePasswordAuthenticationFilter.class);
+//                .addFilterBefore(new JwtFilter(secretKey), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAfter(new JwtFilter(secretKey), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

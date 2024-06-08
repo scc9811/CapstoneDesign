@@ -32,7 +32,7 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findByEmail(signInRequest.getEmail());
         if(optionalUser.isEmpty()) return false;
         User user = optionalUser.get();
-        return bCryptPasswordEncoder.matches(signInRequest.getPassWord(), user.getPassword());
+        return bCryptPasswordEncoder.matches(signInRequest.getPassword(), user.getPassword());
     }
 
     public String getJwt(String email) {
@@ -41,17 +41,24 @@ public class UserService {
 
     public boolean getSignUpResult(SignUpRequest signUpRequest) {
         // 이미 가입되어 있는 이메일인 경우
-        if(isUserRegistered(signUpRequest.getEmail())) return false;
+        if(isUserRegistered(signUpRequest.getEmail())) {
+            log.info("이미 가입되어있는 이메일");
+            return false;
+        }
 
         // test중...
         log.info("pwd = " + signUpRequest.getPassword());
         String encodedPwd = bCryptPasswordEncoder.encode(signUpRequest.getPassword());
         log.info("match = " + String.valueOf(bCryptPasswordEncoder.matches(signUpRequest.getPassword(), encodedPwd)));
         User user = User.builder()
-                        .nickName(signUpRequest.getNickName())
+                        .nickname(signUpRequest.getNickName())
                         .email(signUpRequest.getEmail())
                         .password(encodedPwd)
                         .build();
+        log.info("---- in userService ----");
+        log.info("---- user Info ----");
+        log.info(user.toString());
+
         log.info(user.toString());
         userRepository.save(user);
         return true;
