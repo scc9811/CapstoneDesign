@@ -27,9 +27,9 @@ public class JwtUtil {
                 .compact();
     }
 
-    public static String getUserName(String token, String secretKey) {
+    public static String getUserEmail(String token, String secretKey) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token)
-                .getBody().get("userName", String.class);
+                .getBody().get("email", String.class);
     }
 
 }

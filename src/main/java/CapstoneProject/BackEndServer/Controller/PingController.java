@@ -7,7 +7,11 @@ import CapstoneProject.BackEndServer.Service.PingTestService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/ping")
@@ -32,8 +36,18 @@ public class PingController {
 
     @PostMapping("/getClientIP")
     public String getClientIP(HttpServletRequest request){
+        System.out.println("ServletRequest. " + request.getRemoteAddr());
         log.info("request getClientIP");
         return request.getRemoteAddr();
+    }
+
+    @PostMapping("/storeResult")
+    public ResponseEntity<String> storeResult(HttpServletRequest request) {
+        LocalDateTime now = LocalDateTime.now();
+        log.info("h = " + now.getHour());
+        log.info("d = " + now.getDayOfWeek());
+
+        return ResponseEntity.ok().body("");
     }
 
 }

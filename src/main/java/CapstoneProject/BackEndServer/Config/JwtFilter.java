@@ -1,6 +1,5 @@
 package CapstoneProject.BackEndServer.Config;
 
-import CapstoneProject.BackEndServer.Service.UserService;
 import CapstoneProject.BackEndServer.Utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -45,8 +44,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
 
 
-        String userName = JwtUtil.getUserName(token, secretKey);
-        log.info("userName: {}", userName);
+        String userName = JwtUtil.getUserEmail(token, secretKey);
+        log.info("userEmail: {}", userName);
 
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(userName, null, List.of(new SimpleGrantedAuthority("USER")));
