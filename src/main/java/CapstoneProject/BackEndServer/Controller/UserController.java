@@ -7,8 +7,12 @@ import CapstoneProject.BackEndServer.Dto.RequestResultData;
 import CapstoneProject.BackEndServer.Dto.SignUpRequest;
 import CapstoneProject.BackEndServer.Service.JsonFormatService;
 import CapstoneProject.BackEndServer.Service.UserService;
+import CapstoneProject.BackEndServer.Utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +31,13 @@ public class UserController {
 
     private final JsonFormatService<JwtData> jwtDataJsonFormatService;
 
+    @Value("${jwt.secret}")
+    private String secretKey;
+
     @PostMapping("getJwt")
     public ResponseEntity<String> getJwt() {
 
-        return ResponseEntity.ok().body(jwtDataJsonFormatService.formatToJson(new JwtData(userService.getJwt("test@gmail.com"))));
+        return ResponseEntity.ok().body(jwtDataJsonFormatService.formatToJson(new JwtData(userService.getJwt("user1@gmail.com"))));
     }
 
     @GetMapping("getSecuredPage")
@@ -44,7 +51,7 @@ public class UserController {
         return ResponseEntity.ok().body(jsonFormatService.formatToJson(new RequestResultData(true)));
     }
 
-    @PostMapping("/signIn")
+    @PostMapping("signIn")
     public ResponseEntity<String> signIn(@RequestBody SignInRequest signInRequest) {
         boolean signInResult = userService.getSignInResult(signInRequest);
         if(!signInResult) {
@@ -62,12 +69,34 @@ public class UserController {
     public ResponseEntity<String> singUp(@RequestBody SignUpRequest signUpRequest) {
         log.info("userInfo = " + signUpRequest.toString());
         boolean signUpResult = userService.getSignUpResult(signUpRequest);
+        log.info("signUpResult = " + signUpResult);
         if(!signUpResult) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 가입되어있는 이메일입니다.");
         }
         else {
             return ResponseEntity.ok().body(jsonFormatService.formatToJson(new RequestResultData(signUpResult)));
         }
+    }
+
+    @PostMapping("isLoggedIn")
+    public ResponseEntity<String> isLoggedIn(HttpServletRequest request) {
+//        String token = request.getHeader(HttpHeaders.AUTHORIZATION).split(" ")[1];
+//        if(JwtUtil.isExpired(token, secretKey)) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("isExpired");
+//        }
+        return ResponseEntity.ok().body("isAuthenticated");
+    }
+
+    @PostMapping("getUserNickName")
+    public ResponseEntity<String> getUserNickName(HttpServletRequest request) {
+        String token = request.getHeader(HttpHeaders.AUTHORIZATION).split(" ")[1];
+//        if(JwtUtil.isExpired(token, secretKey)) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("isExpired");
+//        }
+        String userEmail = JwtUtil.getUserEmail(token, secretKey);
+        String nickName = userService.getUserNickName(userEmail);
+        if(nickName == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("error");
+        return ResponseEntity.ok().body(nickName);
     }
 
 }

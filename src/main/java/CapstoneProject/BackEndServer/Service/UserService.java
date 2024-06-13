@@ -56,7 +56,7 @@ public class UserService {
                         .build();
         log.info("---- in userService ----");
         log.info("---- user Info ----");
-        log.info(user.toString());
+
 
         log.info(user.toString());
         userRepository.save(user);
@@ -65,5 +65,17 @@ public class UserService {
 
     public boolean isUserRegistered(String email) {
         return userRepository.findByEmail(email).isPresent();
+    }
+
+    public String getUserNickName(String userEmail) {
+        Optional<User> optionalUser = userRepository.findByEmail(userEmail);
+        if(optionalUser.isEmpty()) return null;
+        return  optionalUser.get().getNickname();
+    }
+
+    public Long getUserId(String userEmail) {
+        Optional<User> optionalUser = userRepository.findByEmail(userEmail);
+        if(optionalUser.isEmpty()) return -1L;
+        return optionalUser.get().getId();
     }
 }

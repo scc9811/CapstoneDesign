@@ -10,8 +10,13 @@ import java.util.Date;
 @Slf4j
 public class JwtUtil {
     public static boolean isExpired(String token, String secretKey) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token)
-                .getBody().getExpiration().before(new Date());
+        try {
+            return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token)
+                    .getBody().getExpiration().before(new Date());
+        }
+        catch (Exception e) {
+            return true;
+        }
     }
     public static String createJwt(String email, String secretKey, Long expiredMs) {
         Claims claims = Jwts.claims();

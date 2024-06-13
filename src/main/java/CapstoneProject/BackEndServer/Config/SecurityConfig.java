@@ -34,7 +34,11 @@ public class SecurityConfig {
                                 .requestMatchers("/user/signUp").permitAll()
                                 .requestMatchers("/user/signIn").permitAll()
                                 .requestMatchers("/user/getJwt").permitAll()
-                                .requestMatchers("/ping/*").permitAll()
+
+                                .requestMatchers("/ping/isICMPInboundAllowed").permitAll()
+                                .requestMatchers("/ping/getClientIP").permitAll()
+//                                .requestMatchers("/ping/*").permitAll()
+//                                .requestMatchers("/ping/storeResult").authenticated()
                                 .requestMatchers("/socketConnection").permitAll()
                                 .anyRequest().authenticated()
                 )
