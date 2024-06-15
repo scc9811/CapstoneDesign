@@ -36,7 +36,9 @@ public class SecurityConfig {
                                 .requestMatchers("/user/getJwt").permitAll()
 
                                 .requestMatchers("/ping/isICMPInboundAllowed").permitAll()
+                                .requestMatchers("/ping/test").permitAll()
                                 .requestMatchers("/ping/getClientIP").permitAll()
+//                                .requestMatchers("/ping/getTestResult").permitAll() // 지워야됨.
 //                                .requestMatchers("/ping/*").permitAll()
 //                                .requestMatchers("/ping/storeResult").authenticated()
                                 .requestMatchers("/socketConnection").permitAll()

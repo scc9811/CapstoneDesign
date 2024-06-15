@@ -4,6 +4,7 @@ package CapstoneProject.BackEndServer.Controller;
 import CapstoneProject.BackEndServer.Dto.ClientAvgTimeData;
 import CapstoneProject.BackEndServer.Dto.ICMPInboundAccessData;
 import CapstoneProject.BackEndServer.Dto.PingResponseTimeData;
+import CapstoneProject.BackEndServer.Dto.SignInRequest;
 import CapstoneProject.BackEndServer.Entity.TestResult;
 import CapstoneProject.BackEndServer.Entity.TestResultId;
 import CapstoneProject.BackEndServer.Repository.TestResultRepository;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,10 +52,11 @@ public class PingController {
 
     @GetMapping("/isICMPInboundAllowed")
     public String isICMPInboundAllowed(HttpServletRequest request){
-//        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed(request.getRemoteAddr());
-        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed("127.0.0.1");
+        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed(request.getRemoteAddr());
+//        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed("127.0.0.1");
         ICMPInboundAccessData data = new ICMPInboundAccessData();
         data.setAllowed(isAllowedICMP);
+//        data.setAllowed(false);
         log.info("isAllowed = " + isAllowedICMP);
         return jsonFormatService_toICMPInboundAccessData.formatToJson(data);
     }
@@ -91,7 +94,6 @@ public class PingController {
                 .id(testResultId)
                 .averageTime(new BigDecimal(clientAvgTimeData.getAverageResponseTime()))
                 .build();
-
         log.info("testResult = " + testResult.toString());
 
         testResultRepository.save(testResult);
@@ -100,18 +102,35 @@ public class PingController {
     }
 
     @PostMapping("/getTestResult")
-    public ResponseEntity<String> getTestResult() {
-        TestResultId testResultId = new TestResultId();
-        testResultId.setUserId(5L);
-        testResultId.setDay(1);
-        testResultId.setHour(5);
-        Optional<TestResult> optionalTestResult = testResultRepository.findById(testResultId);
-        log.info(String.valueOf(testResultRepository.findAll().size()));
+    public ResponseEntity<List<TestResult>> getTestResult(HttpServletRequest request) {
+        log.info("==== /ping/getTestResult ====");
+        // token -> email -> userId -> find TestResult  -> parsing -> response
+        String token = request.getHeader(HttpHeaders.AUTHORIZATION).split(" ")[1];
+        String userEmail = JwtUtil.getUserEmail(token, secretKey);
+        long userId = userRepository.findByEmail(userEmail).get().getId();
+        log.info("userId : " + userId);
+        List<TestResult> testResultList = testResultRepository.findByIdUserId(userId);
+
+        log.info(testResultList.toString());
 
 
+//        TestResultId testResultId = new Test/esultId();
+//        testResultId.setUserId(5L);
+//        testResultId.setDay(1);
+//        testResultId.setHour(5);
+//        Optional<TestResult> optionalTestResult = testResultRepository.findById(testResultId);
+//        log.info(String.valueOf(testResultRepository.findAll().size()));
+//
+//        if(optionalTestResult.isEmpty()) log.info("empty");
+//        else log.info(optionalTestResult.get().toString());
 
-        if(optionalTestResult.isEmpty()) log.info("empty");
-        else log.info(optionalTestResult.get().toString());
-        return ResponseEntity.ok().body("");
+        return ResponseEntity.ok().body(testResultList);
+    }
+    @PostMapping("test")
+    public ResponseEntity<SignInRequest> test() {
+        SignInRequest signInRequest = new SignInRequest();
+        signInRequest.setEmail("ok");
+        signInRequest.setPassword("ok");
+        return ResponseEntity.ok().body(signInRequest);
     }
 }

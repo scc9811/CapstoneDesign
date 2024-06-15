@@ -90,9 +90,6 @@ public class UserController {
     @PostMapping("getUserNickName")
     public ResponseEntity<String> getUserNickName(HttpServletRequest request) {
         String token = request.getHeader(HttpHeaders.AUTHORIZATION).split(" ")[1];
-//        if(JwtUtil.isExpired(token, secretKey)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("isExpired");
-//        }
         String userEmail = JwtUtil.getUserEmail(token, secretKey);
         String nickName = userService.getUserNickName(userEmail);
         if(nickName == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("error");
