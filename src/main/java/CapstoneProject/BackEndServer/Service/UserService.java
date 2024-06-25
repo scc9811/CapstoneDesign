@@ -69,8 +69,9 @@ public class UserService {
 
     public String getUserNickName(String userEmail) {
         Optional<User> optionalUser = userRepository.findByEmail(userEmail);
-        if(optionalUser.isEmpty()) return null;
-        return  optionalUser.get().getNickname();
+//        if(optionalUser.isEmpty()) return null;
+//        return  optionalUser.get().getNickname();
+        return optionalUser.map(User::getNickname).orElse(null);
     }
 
     public Long getUserId(String userEmail) {
@@ -78,4 +79,5 @@ public class UserService {
         if(optionalUser.isEmpty()) return -1L;
         return optionalUser.get().getId();
     }
+
 }

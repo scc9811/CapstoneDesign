@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,100 +38,41 @@ public class PingController {
 
     @Value("${jwt.secret}")
     private String secretKey;
-
-    private final JsonFormatService<ICMPInboundAccessData> jsonFormatService_toICMPInboundAccessData;
-
+    
     private final PingTestService pingTestService;
 
-    private final TestResultRepository testResultRepository;
-
-    private final UserRepository userRepository;
-
-    private final UserService userService;
-
-    private final Map<String, Integer> dayIndexMapper;
-
     @GetMapping("/isICMPInboundAllowed")
-    public String isICMPInboundAllowed(HttpServletRequest request){
-        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed(request.getRemoteAddr());
-//        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed("127.0.0.1");
+    public ResponseEntity<ICMPInboundAccessData> isICMPInboundAllowed(HttpServletRequest request){
+//        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed(request.getRemoteAddr());
+        boolean isAllowedICMP = pingTestService.getIcmpPacketAllowed("127.0.0.1");
         ICMPInboundAccessData data = new ICMPInboundAccessData();
         data.setAllowed(isAllowedICMP);
-//        data.setAllowed(false);
         log.info("isAllowed = " + isAllowedICMP);
-        return jsonFormatService_toICMPInboundAccessData.formatToJson(data);
+        return ResponseEntity.ok().body(data);
     }
 
     @GetMapping("/getClientIP")
     public String getClientIP(HttpServletRequest request){
-        System.out.println("ServletRequest. " + request.getRemoteAddr());
         log.info("request getClientIP");
         return request.getRemoteAddr();
     }
 
-//    @GetMapping("/ping")
-//    public void test(HttpServletRequest request) {
-//        log.info("user ip : " + request.getRemoteAddr());
-//        log.info("user port : " + request.getRemotePort());
-//    }
-
     @PostMapping("/storeResult")
     public ResponseEntity<String> storeResult(HttpServletRequest request, @RequestBody ClientAvgTimeData clientAvgTimeData) {
         log.info("client's avg time : " + clientAvgTimeData.getAverageResponseTime());
-
         String token = request.getHeader(HttpHeaders.AUTHORIZATION).split(" ")[1];
-        String userEmail = JwtUtil.getUserEmail(token, secretKey);
-
-        LocalDateTime now = LocalDateTime.now();
-
-        TestResultId testResultId = new TestResultId();
-        testResultId.setUserId(userService.getUserId(userEmail));
-        testResultId.setDay(dayIndexMapper.get(now.getDayOfWeek().toString()));
-        testResultId.setHour(now.getHour());
-        log.info("testResultId = " + testResultId.toString());
-
-        TestResult testResult = TestResult
-                .builder()
-                .id(testResultId)
-                .averageTime(new BigDecimal(clientAvgTimeData.getAverageResponseTime()))
-                .build();
-        log.info("testResult = " + testResult.toString());
-
-        testResultRepository.save(testResult);
-
-        return ResponseEntity.ok().body("");
+        boolean saveResult =  pingTestService.saveAndReturnStatus(token, clientAvgTimeData);
+        return ResponseEntity.status(saveResult ? HttpStatus.ACCEPTED : HttpStatus.BAD_REQUEST).body("");
     }
 
     @PostMapping("/getTestResult")
     public ResponseEntity<List<TestResult>> getTestResult(HttpServletRequest request) {
         log.info("==== /ping/getTestResult ====");
-        // token -> email -> userId -> find TestResult  -> parsing -> response
+        // token -> email -> userId -> find TestResult -> response
         String token = request.getHeader(HttpHeaders.AUTHORIZATION).split(" ")[1];
-        String userEmail = JwtUtil.getUserEmail(token, secretKey);
-        long userId = userRepository.findByEmail(userEmail).get().getId();
-        log.info("userId : " + userId);
-        List<TestResult> testResultList = testResultRepository.findByIdUserId(userId);
-
+        List<TestResult> testResultList = pingTestService.getTestResults(token);
         log.info(testResultList.toString());
-
-
-//        TestResultId testResultId = new Test/esultId();
-//        testResultId.setUserId(5L);
-//        testResultId.setDay(1);
-//        testResultId.setHour(5);
-//        Optional<TestResult> optionalTestResult = testResultRepository.findById(testResultId);
-//        log.info(String.valueOf(testResultRepository.findAll().size()));
-//
-//        if(optionalTestResult.isEmpty()) log.info("empty");
-//        else log.info(optionalTestResult.get().toString());
-
         return ResponseEntity.ok().body(testResultList);
     }
-    @PostMapping("test")
-    public ResponseEntity<SignInRequest> test() {
-        SignInRequest signInRequest = new SignInRequest();
-        signInRequest.setEmail("ok");
-        signInRequest.setPassword("ok");
-        return ResponseEntity.ok().body(signInRequest);
-    }
+
 }

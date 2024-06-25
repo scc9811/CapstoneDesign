@@ -21,7 +21,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     @Value("${jwt.secret}")
     private String secretKey;
-    private final UserService userService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -38,7 +37,6 @@ public class SecurityConfig {
                                 .requestMatchers("/ping/isICMPInboundAllowed").permitAll()
                                 .requestMatchers("/ping/test").permitAll()
                                 .requestMatchers("/ping/getClientIP").permitAll()
-//                                .requestMatchers("/ping/getTestResult").permitAll() // 지워야됨.
 //                                .requestMatchers("/ping/*").permitAll()
 //                                .requestMatchers("/ping/storeResult").authenticated()
                                 .requestMatchers("/socketConnection").permitAll()
