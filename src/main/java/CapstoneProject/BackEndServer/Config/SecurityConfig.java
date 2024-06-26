@@ -40,6 +40,7 @@ public class SecurityConfig {
 //                                .requestMatchers("/ping/*").permitAll()
 //                                .requestMatchers("/ping/storeResult").authenticated()
                                 .requestMatchers("/socketConnection").permitAll()
+                                .requestMatchers("/networkLatencyWebSocketConnection").permitAll()
                                 .anyRequest().authenticated()
                 )
 //                .addFilterBefore(new JwtFilter(secretKey), UsernamePasswordAuthenticationFilter.class);
